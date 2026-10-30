@@ -233,7 +233,18 @@ Les tests couvrent les barèmes, les rangs, les quêtes et les bonus, les action
 
 ## Auteur
 
-**Arthur Nguekeu**, certifié Microsoft **DP-600** (Fabric Analytics Engineer) et **DP-700** (Fabric Data Engineer).
+**Arthur Nguekeu**
+
+| Certification | Intitulé |
+|---|---|
+| **DP-600** | Microsoft Certified: Fabric Analytics Engineer Associate |
+| **DP-700** | Microsoft Certified: Fabric Data Engineer Associate |
+| **PL-300** | Microsoft Certified: Power BI Data Analyst Associate |
+| **AZ-305** | Microsoft Certified: Azure Solutions Architect Expert |
+| **AZ-104** | Microsoft Certified: Azure Administrator Associate |
+| **AZ-900** | Microsoft Certified: Azure Fundamentals |
+| **AI-900** | Microsoft Certified: Azure AI Fundamentals |
+| **SFPC** | Scrum Foundation Professional Certificate |
 
 ---
 
