@@ -1,0 +1,7 @@
+/// Point de terminaison SQL du lakehouse Systeme_Analyse (Direct Lake)
+expression DatabaseQuery =
+		let
+		    database = Sql.Database("jk3yb5i4w36u5henrlt6at5lpe-s7yiy4qsk6wufhhe7dp4ffj73a.datawarehouse.fabric.microsoft.com", "2ae658c1-bcd5-42cb-ab3e-659b11fe4351")
+		in
+		    database
+

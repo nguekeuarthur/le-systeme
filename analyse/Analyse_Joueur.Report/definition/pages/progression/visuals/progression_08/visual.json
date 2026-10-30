@@ -1,0 +1,97 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "progression_08",
+  "position": {
+    "x": 20,
+    "y": 440,
+    "z": 8,
+    "width": 800,
+    "height": 260,
+    "tabOrder": 8
+  },
+  "visual": {
+    "visualType": "columnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_date"
+                    }
+                  },
+                  "Property": "semaine"
+                }
+              },
+              "queryRef": "dim_date.semaine",
+              "nativeQueryRef": "semaine",
+              "active": true
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_categorie"
+                    }
+                  },
+                  "Property": "libelle"
+                }
+              },
+              "queryRef": "dim_categorie.libelle",
+              "nativeQueryRef": "libelle"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fait_activite"
+                    }
+                  },
+                  "Property": "XP total"
+                }
+              },
+              "queryRef": "fait_activite.XP total",
+              "nativeQueryRef": "XP total"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Expérience par semaine'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

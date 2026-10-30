@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "activites_02",
+  "position": {
+    "x": 436,
+    "y": 20,
+    "z": 2,
+    "width": 198,
+    "height": 110,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fait_activite"
+                    }
+                  },
+                  "Property": "Épisodes vus"
+                }
+              },
+              "queryRef": "fait_activite.Épisodes vus",
+              "nativeQueryRef": "Épisodes vus"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

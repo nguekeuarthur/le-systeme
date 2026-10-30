@@ -1,0 +1,43 @@
+table fait_certification
+
+	measure Certifications = COALESCE(COUNTROWS(fait_certification), 0)
+		formatString: 0
+
+	measure Rang =
+			VAR toutes = CALCULATETABLE(VALUES(fait_certification[code]), ALL(dim_date))
+			VAR nombre = COUNTROWS(toutes)
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        "DP-600" IN toutes && "AI-103" IN toutes, "Monarque",
+			        "DP-600" IN toutes, "S",
+			        nombre >= 4, "A",
+			        nombre = 3, "B",
+			        nombre = 2, "C",
+			        nombre = 1, "D",
+			        "E"
+			    )
+
+	column code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: code
+
+	column intitule
+		dataType: string
+		summarizeBy: none
+		sourceColumn: intitule
+
+	column date
+		dataType: dateTime
+		formatString: dd.MM.yyyy
+		summarizeBy: none
+		sourceColumn: date
+
+	partition fait_certification = entity
+		mode: directLake
+		source
+			entityName: fait_certification
+			schemaName: gold
+			expressionSource: DatabaseQuery
+

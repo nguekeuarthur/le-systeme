@@ -1,0 +1,102 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "progression_09",
+  "position": {
+    "x": 840,
+    "y": 440,
+    "z": 9,
+    "width": 420,
+    "height": 260,
+    "tabOrder": 9
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_oeuvre"
+                    }
+                  },
+                  "Property": "titre"
+                }
+              },
+              "queryRef": "dim_oeuvre.titre",
+              "nativeQueryRef": "titre"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_oeuvre"
+                    }
+                  },
+                  "Property": "classe_ombre"
+                }
+              },
+              "queryRef": "dim_oeuvre.classe_ombre",
+              "nativeQueryRef": "classe_ombre"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_oeuvre"
+                    }
+                  },
+                  "Property": "statut"
+                }
+              },
+              "queryRef": "dim_oeuvre.statut",
+              "nativeQueryRef": "statut"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_oeuvre"
+                    }
+                  },
+                  "Property": "avancement"
+                }
+              },
+              "queryRef": "dim_oeuvre.avancement",
+              "nativeQueryRef": "avancement"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Armée des ombres'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

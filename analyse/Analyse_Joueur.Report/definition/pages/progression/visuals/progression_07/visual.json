@@ -1,0 +1,79 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "progression_07",
+  "position": {
+    "x": 840,
+    "y": 145,
+    "z": 7,
+    "width": 420,
+    "height": 280,
+    "tabOrder": 7
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_categorie"
+                    }
+                  },
+                  "Property": "libelle"
+                }
+              },
+              "queryRef": "dim_categorie.libelle",
+              "nativeQueryRef": "libelle",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fait_activite"
+                    }
+                  },
+                  "Property": "XP total"
+                }
+              },
+              "queryRef": "fait_activite.XP total",
+              "nativeQueryRef": "XP total"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'D'où vient l'expérience'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

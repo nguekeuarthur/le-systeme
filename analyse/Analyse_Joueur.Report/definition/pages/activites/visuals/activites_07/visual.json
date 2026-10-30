@@ -1,0 +1,107 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "activites_07",
+  "position": {
+    "x": 20,
+    "y": 440,
+    "z": 7,
+    "width": 1240,
+    "height": 260,
+    "tabOrder": 7
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_date"
+                    }
+                  },
+                  "Property": "mois"
+                }
+              },
+              "queryRef": "dim_date.mois",
+              "nativeQueryRef": "mois",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fait_activite"
+                    }
+                  },
+                  "Property": "Minutes de sport"
+                }
+              },
+              "queryRef": "fait_activite.Minutes de sport",
+              "nativeQueryRef": "Minutes de sport"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fait_activite"
+                    }
+                  },
+                  "Property": "Pages lues"
+                }
+              },
+              "queryRef": "fait_activite.Pages lues",
+              "nativeQueryRef": "Pages lues"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fait_activite"
+                    }
+                  },
+                  "Property": "Chapitres lus"
+                }
+              },
+              "queryRef": "fait_activite.Chapitres lus",
+              "nativeQueryRef": "Chapitres lus"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Volume par mois'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

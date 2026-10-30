@@ -1,0 +1,84 @@
+table fait_jour
+
+	measure 'Niveau actuel' = MAX(fait_jour[niveau])
+		formatString: 0
+
+	measure 'XP cumulé' = MAX(fait_jour[xp_cumule])
+		formatString: #,0
+
+	measure 'Série actuelle' = LASTNONBLANKVALUE(fait_jour[date], MAX(fait_jour[serie]))
+		formatString: 0
+
+	measure 'Meilleure série' = MAX(fait_jour[serie])
+		formatString: 0
+
+	measure 'Jours actifs' = SUM(fait_jour[actif])
+		formatString: 0
+
+	measure 'Quêtes accomplies' = SUM(fait_jour[quete_accomplie])
+		formatString: 0
+
+	measure 'Taux de quête' = DIVIDE([Quêtes accomplies], COUNTROWS(fait_jour))
+		formatString: 0 %
+
+	column date
+		dataType: dateTime
+		formatString: dd.MM.yyyy
+		summarizeBy: none
+		sourceColumn: date
+
+	column xp_jour
+		dataType: int64
+		formatString: #,0
+		summarizeBy: sum
+		sourceColumn: xp_jour
+
+	column actions
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: actions
+
+	column quete_accomplie
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: quete_accomplie
+
+	column xp_cumule
+		dataType: int64
+		isHidden
+		formatString: #,0
+		summarizeBy: none
+		sourceColumn: xp_cumule
+
+	column niveau
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: niveau
+
+	column serie
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: serie
+
+	column actif
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: actif
+
+	partition fait_jour = entity
+		mode: directLake
+		source
+			entityName: fait_jour
+			schemaName: gold
+			expressionSource: DatabaseQuery
+

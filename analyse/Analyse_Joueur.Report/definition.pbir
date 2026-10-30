@@ -1,0 +1,9 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/2.0.0/schema.json",
+  "version": "4.0",
+  "datasetReference": {
+    "byConnection": {
+      "connectionString": "Data Source=\"powerbi://api.powerbi.com/v1.0/myorg/Le Système\";initial catalog=Analyse_Joueur;integrated security=ClaimsToken;semanticmodelid=dda64813-0f07-4964-b00b-9326eea17596"
+    }
+  }
+}

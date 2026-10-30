@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "progression_05",
+  "position": {
+    "x": 1060,
+    "y": 20,
+    "z": 5,
+    "width": 198,
+    "height": 110,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fait_certification"
+                    }
+                  },
+                  "Property": "Certifications"
+                }
+              },
+              "queryRef": "fait_certification.Certifications",
+              "nativeQueryRef": "Certifications"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

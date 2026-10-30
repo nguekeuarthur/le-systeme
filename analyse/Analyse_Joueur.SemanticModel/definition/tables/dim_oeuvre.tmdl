@@ -1,0 +1,81 @@
+table dim_oeuvre
+
+	measure 'Œuvres terminées' = COALESCE(CALCULATE(COUNTROWS(dim_oeuvre), dim_oeuvre[statut] = "Terminée"), 0)
+		formatString: 0
+
+	measure 'Œuvres en cours' = COALESCE(CALCULATE(COUNTROWS(dim_oeuvre), dim_oeuvre[statut] = "En cours", ALL(dim_date)), 0)
+		formatString: 0
+
+	column titre
+		dataType: string
+		summarizeBy: none
+		sourceColumn: titre
+
+	column type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: type
+
+	column format
+		dataType: string
+		summarizeBy: none
+		sourceColumn: format
+
+	column unite
+		dataType: string
+		summarizeBy: none
+		sourceColumn: unite
+
+	column progression
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: progression
+
+	column total
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: total
+
+	column avancement
+		dataType: double
+		formatString: 0 %
+		summarizeBy: none
+		sourceColumn: avancement
+
+	column statut
+		dataType: string
+		summarizeBy: none
+		sourceColumn: statut
+
+	column classe_ombre
+		dataType: string
+		summarizeBy: none
+		sourceColumn: classe_ombre
+
+	column cree_le
+		dataType: dateTime
+		formatString: dd.MM.yyyy
+		summarizeBy: none
+		sourceColumn: cree_le
+
+	column date_terminee
+		dataType: dateTime
+		formatString: dd.MM.yyyy
+		summarizeBy: none
+		sourceColumn: date_terminee
+
+	column jours_pour_finir
+		dataType: int64
+		formatString: 0
+		summarizeBy: average
+		sourceColumn: jours_pour_finir
+
+	partition dim_oeuvre = entity
+		mode: directLake
+		source
+			entityName: dim_oeuvre
+			schemaName: gold
+			expressionSource: DatabaseQuery
+

@@ -1,0 +1,38 @@
+table dim_categorie
+
+	column categorie
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: categorie
+
+	column libelle
+		dataType: string
+		summarizeBy: none
+		sourceColumn: libelle
+		sortByColumn: ordre
+
+	column caracteristique
+		dataType: string
+		summarizeBy: none
+		sourceColumn: caracteristique
+
+	column unite
+		dataType: string
+		summarizeBy: none
+		sourceColumn: unite
+
+	column ordre
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: ordre
+
+	partition dim_categorie = entity
+		mode: directLake
+		source
+			entityName: dim_categorie
+			schemaName: gold
+			expressionSource: DatabaseQuery
+

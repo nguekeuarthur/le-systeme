@@ -1,0 +1,18 @@
+# Jetons de connexion Azure et environnement Python de la CLI Fabric : jamais publiés
+.az-perso/
+.venv-fabric/
+
+# Python
+__pycache__/
+*.pyc
+
+# Variables d'environnement locales (l'app a aussi son propre .gitignore)
+.env
+.env.local
+*.local
+
+# Éditeur / système
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,20 @@
+relationship activite_date
+	fromColumn: fait_activite.date
+	toColumn: dim_date.date
+
+relationship activite_categorie
+	fromColumn: fait_activite.categorie
+	toColumn: dim_categorie.categorie
+
+relationship jour_date
+	fromColumn: fait_jour.date
+	toColumn: dim_date.date
+
+relationship certification_date
+	fromColumn: fait_certification.date
+	toColumn: dim_date.date
+
+relationship oeuvre_date
+	fromColumn: dim_oeuvre.date_terminee
+	toColumn: dim_date.date
+

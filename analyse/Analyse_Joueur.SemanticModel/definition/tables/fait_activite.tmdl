@@ -1,0 +1,92 @@
+table fait_activite
+
+	measure 'XP total' = SUM(fait_activite[xp])
+		formatString: #,0
+
+	measure 'XP 7 derniers jours' = CALCULATE([XP total], DATESINPERIOD(dim_date[date], TODAY(), -7, DAY))
+		formatString: #,0
+
+	measure 'Minutes de sport' = SUM(fait_activite[minutes])
+		formatString: #,0
+
+	measure 'Heures de sport' = DIVIDE([Minutes de sport], 60)
+		formatString: #,0.0
+
+	measure 'Pages lues' = SUM(fait_activite[pages])
+		formatString: #,0
+
+	measure 'Épisodes vus' = SUM(fait_activite[episodes])
+		formatString: #,0
+
+	measure 'Chapitres lus' = SUM(fait_activite[chapitres])
+		formatString: #,0
+
+	measure 'Nombre d''actions' = COUNTROWS(fait_activite)
+		formatString: #,0
+
+	column date
+		dataType: dateTime
+		formatString: dd.MM.yyyy
+		summarizeBy: none
+		sourceColumn: date
+
+	column categorie
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: categorie
+
+	column xp
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: xp
+
+	column quantite
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: quantite
+
+	column minutes
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: minutes
+
+	column pages
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: pages
+
+	column episodes
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: episodes
+
+	column chapitres
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: chapitres
+
+	column libelle
+		dataType: string
+		summarizeBy: none
+		sourceColumn: libelle
+
+	partition fait_activite = entity
+		mode: directLake
+		source
+			entityName: fait_activite
+			schemaName: gold
+			expressionSource: DatabaseQuery
+
