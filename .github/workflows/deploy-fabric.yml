@@ -1,0 +1,156 @@
+# Déploiement continu de la chaîne analytique (dossier analyse/) dans l'espace de travail
+# Fabric « Le Système ».
+#
+# - Vérification sur chaque pull request et chaque poussée : syntaxe Python, validité des
+#   définitions JSON, et contrôle que le rapport PBIR versionné est bien celui que produit
+#   generer_rapport.py.
+# - Déploiement seulement sur main : les mêmes commandes `fab import` que dans analyse/README.md.
+#
+# Authentification sans secret : GitHub émet un jeton OIDC, que la CLI Fabric échange contre
+# un jeton Entra ID grâce à l'identité fédérée déclarée sur l'inscription d'application.
+# Les deux variables de dépôt FABRIC_CLIENT_ID et FABRIC_TENANT_ID sont décrites dans le README.
+
+name: Déploiement Fabric
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "analyse/**"
+      - ".github/workflows/deploy-fabric.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "analyse/**"
+      - ".github/workflows/deploy-fabric.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Modèle sémantique Analyse_Joueur, cible du rapport (voir analyse/README.md)
+  ID_MODELE: dda64813-0f07-4964-b00b-9326eea17596
+
+jobs:
+  verifier:
+    name: Vérification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Récupération du dépôt
+        uses: actions/checkout@v4
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Syntaxe des scripts Python
+        run: |
+          python -m py_compile \
+            analyse/generer_rapport.py \
+            analyse/verifier.py \
+            analyse/Pipeline_Medaillon.Notebook/notebook-content.py
+          echo "Scripts Python compilés sans erreur"
+
+      - name: Validité des définitions JSON
+        run: |
+          python - <<'PY'
+          import json, pathlib, sys
+
+          extensions = {".json", ".platform", ".pbir", ".pbism"}
+          fichiers = sorted(f for f in pathlib.Path("analyse").rglob("*") if f.is_file() and f.suffix in extensions)
+          erreurs = []
+          for f in fichiers:
+              try:
+                  json.loads(f.read_text(encoding="utf-8"))
+              except ValueError as e:
+                  erreurs.append(f"{f} : {e}")
+          print(f"{len(fichiers)} fichiers JSON contrôlés")
+          if erreurs:
+              print("\n".join(erreurs))
+              sys.exit(1)
+          PY
+
+      - name: Le rapport versionné correspond au script
+        run: |
+          python analyse/generer_rapport.py "$ID_MODELE"
+          if [ -n "$(git status --porcelain -- analyse/Analyse_Joueur.Report)" ]; then
+            git --no-pager status --short -- analyse/Analyse_Joueur.Report
+            git --no-pager diff -- analyse/Analyse_Joueur.Report
+            echo "::error::analyse/Analyse_Joueur.Report ne correspond pas à generer_rapport.py : régénère le rapport et versionne le résultat."
+            exit 1
+          fi
+          echo "Rapport PBIR identique au dossier versionné"
+
+  deployer:
+    name: Déploiement dans Fabric
+    needs: verifier
+    # Jamais depuis une pull request : seul main (poussée ou lancement manuel) déploie.
+    # Sans la variable de dépôt FABRIC_CLIENT_ID (bifurcation non configurée), l'étape est sautée.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.FABRIC_CLIENT_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: deploiement-fabric
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write # jeton OIDC pour l'identité fédérée
+    env:
+      ESPACE: Le Système.Workspace
+    steps:
+      - name: Récupération du dépôt
+        uses: actions/checkout@v4
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installation de la CLI Fabric
+        run: |
+          pip install --quiet ms-fabric-cli==1.8.0
+          fab --version
+
+      - name: Jeton d'identité fédérée (OIDC)
+        env:
+          CLIENT_ID: ${{ vars.FABRIC_CLIENT_ID }}
+          TENANT_ID: ${{ vars.FABRIC_TENANT_ID }}
+        run: |
+          if [ -z "$CLIENT_ID" ] || [ -z "$TENANT_ID" ]; then
+            echo "::error::Variables de dépôt FABRIC_CLIENT_ID et FABRIC_TENANT_ID absentes (Settings → Secrets and variables → Actions → Variables). Voir le README, section CI/CD."
+            exit 1
+          fi
+          jeton=$(curl --silent --show-error --fail \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" | jq -r '.value')
+          if [ -z "$jeton" ] || [ "$jeton" = "null" ]; then
+            echo "::error::GitHub n'a pas émis de jeton OIDC."
+            exit 1
+          fi
+          echo "::add-mask::$jeton"
+          {
+            echo "FAB_SPN_CLIENT_ID=$CLIENT_ID"
+            echo "FAB_TENANT_ID=$TENANT_ID"
+            echo "FAB_SPN_FEDERATED_TOKEN=$jeton"
+          } >> "$GITHUB_ENV"
+          echo "Jeton OIDC obtenu pour $GITHUB_REPOSITORY ($GITHUB_REF)"
+
+      - name: Connexion à Fabric
+        run: |
+          fab config set encryption_fallback_enabled true
+          fab auth status
+
+      - name: Notebook Pipeline_Medaillon
+        run: fab import "$ESPACE/Pipeline_Medaillon.Notebook" -i analyse/Pipeline_Medaillon.Notebook --format .py -f
+
+      - name: Modèle sémantique Analyse_Joueur
+        run: fab import "$ESPACE/Analyse_Joueur.SemanticModel" -i analyse/Analyse_Joueur.SemanticModel -f
+
+      - name: Rapport Analyse du Joueur
+        run: fab import "$ESPACE/Analyse du Joueur.Report" -i analyse/Analyse_Joueur.Report -f
+
+      - name: Éléments déployés
+        run: fab ls "$ESPACE" -l

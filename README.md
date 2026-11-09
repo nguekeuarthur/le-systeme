@@ -10,8 +10,9 @@
 ![Power BI](https://img.shields.io/badge/Power%20BI-Direct%20Lake-F2C811?style=flat-square&logo=powerbi&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-React%2019-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Three.js](https://img.shields.io/badge/Three.js-WebGL-000000?style=flat-square&logo=threedotjs&logoColor=white)
+![Déploiement Fabric](https://img.shields.io/github/actions/workflow/status/nguekeuarthur/le-systeme/deploy-fabric.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=D%C3%A9ploiement%20Fabric)
 
-[Démo vidéo](#démo) · [Architecture](#architecture) · [Modèle de données](#modèle-de-données) · [Démarrage](#démarrage)
+[Démo vidéo](#démo) · [Architecture](#architecture) · [Modèle de données](#modèle-de-données) · [Démarrage](#démarrage) · [CI/CD](#cicd)
 
 </div>
 
@@ -88,7 +89,7 @@ flowchart LR
 - **Une seule source pour l'opérationnel et l'analytique.** La base SQL Fabric est répliquée nativement dans OneLake. La chaîne analytique la lit sur place, sans pipeline de copie.
 - **Sécurité par conception.** Chaque table porte une politique de ligne (`claims.sub = user_id`). La couche silver ne conserve aucun identifiant de compte.
 - **Synchronisation multi-appareils.** Chaque saisie porte l'appareil qui l'a faite. L'écran principal rejoue les événements venus d'un autre appareil sous forme de notifications et de cinématiques.
-- **Tout est versionné en texte.** Notebook (`.py`), modèle sémantique (TMDL) et rapport (PBIR) sont déployés par la CLI Fabric à partir de ce dépôt.
+- **Tout est versionné en texte.** Notebook (`.py`), modèle sémantique (TMDL) et rapport (PBIR) sont déployés par la CLI Fabric à partir de ce dépôt, et redéployés automatiquement par GitHub Actions à chaque poussée sur `main` (voir [CI/CD](#cicd)).
 
 ## Modèle de données
 
@@ -168,7 +169,7 @@ Taux de quête, Heures de sport, Pages lues, Épisodes vus, Chapitres lus, Œuvr
 | Données | SQL Database in Fabric, OneLake, Delta Lake, Lakehouse avec schémas |
 | Traitement | Notebook PySpark (Fabric Spark) |
 | Restitution | Modèle sémantique Direct Lake (TMDL), rapport Power BI (PBIR) |
-| Outillage | Rayfin CLI, Fabric CLI, Vitest, ESLint |
+| Outillage | Rayfin CLI, Fabric CLI, GitHub Actions (OIDC), Vitest, ESLint |
 
 ## Démarrage
 
@@ -212,10 +213,65 @@ npm test
 
 Les tests couvrent les barèmes, les rangs, les quêtes et les bonus, les actions du joueur et la suppression avec recalcul.
 
+## CI/CD
+
+La chaîne analytique se déploie toute seule. Le flux GitHub Actions [`deploy-fabric.yml`](.github/workflows/deploy-fabric.yml)
+tourne à chaque pull request et à chaque poussée sur `main` qui touche `analyse/`. Il peut aussi être lancé à la main.
+
+### Ce que fait le flux
+
+| Étape | Pull request | Poussée sur `main` |
+|---|:---:|:---:|
+| Compilation des scripts Python (notebook, `generer_rapport.py`, `verifier.py`) | ✔ | ✔ |
+| Validité JSON de toutes les définitions (`.platform`, `.pbir`, `.pbism`, pages et visuels PBIR) | ✔ | ✔ |
+| Régénération du rapport PBIR et comparaison avec le dossier versionné : le script et le dépôt doivent dire la même chose | ✔ | ✔ |
+| `fab import` du notebook, du modèle sémantique puis du rapport dans l'espace « Le Système » | | ✔ |
+
+Le déploiement reprend exactement les commandes de [`analyse/README.md`](analyse/README.md), avec la même CLI Fabric
+(`ms-fabric-cli`, version figée dans le flux) : ce qui marche à la main depuis le poste marche dans le flux, et inversement.
+Le déploiement ne part jamais d'une pull request ni d'une bifurcation. Seul `main` écrit dans Fabric.
+
+### Comment il s'authentifie
+
+Aucun secret, ni dans le dépôt ni dans GitHub. Le flux demande à GitHub un jeton OIDC (permission `id-token: write`),
+puis la CLI Fabric l'échange contre un jeton Entra ID grâce aux variables d'environnement `FAB_SPN_CLIENT_ID`, `FAB_TENANT_ID`
+et `FAB_SPN_FEDERATED_TOKEN`. Côté tenant, la mise en place se fait une fois :
+
+1. **Une inscription d'application Entra ID** (ici « GitHub Actions - Le Système »), sans secret ni certificat, avec un
+   identifiant fédéré de type *GitHub Actions* : organisation `nguekeuarthur`, dépôt `le-systeme`, entité *Branch*, branche `main`.
+   Le sujet attendu est donc `repo:nguekeuarthur/le-systeme:ref:refs/heads/main` et l'audience `api://AzureADTokenExchange`.
+2. **Le paramètre de locataire Fabric** « Les principaux de service peuvent utiliser les API Fabric » activé
+   (portail d'administration → Paramètres du locataire → Paramètres du développeur).
+3. **Le rôle Contributeur** du principal de service sur l'espace de travail « Le Système » :
+   `fab acl set "Le Système.Workspace" -I <id d'objet du principal> -R Contributor`.
+4. **Deux variables de dépôt GitHub** (Settings → Secrets and variables → Actions → Variables) :
+   `FABRIC_CLIENT_ID` (identifiant d'application) et `FABRIC_TENANT_ID` (identifiant du locataire). Ce ne sont pas des secrets.
+   Sans `FABRIC_CLIENT_ID`, le déploiement est sauté et seule la vérification tourne (cas d'une bifurcation non configurée).
+
+Pour utiliser un secret client à la place (autre hébergeur de CI, par exemple), remplace l'étape « Jeton d'identité fédérée »
+par la variable `FAB_SPN_CLIENT_SECRET` lue depuis un secret GitHub. Le reste du flux ne change pas.
+
+### Comment le relancer
+
+- Onglet **Actions** du dépôt → *Déploiement Fabric* → *Run workflow* sur `main` : vérification puis déploiement, sans nouveau commit.
+- En ligne de commande : `gh workflow run deploy-fabric.yml`, puis `gh run watch`.
+- Une poussée sur `main` qui modifie `analyse/` ou le flux lui-même relance tout. Un changement ailleurs (README, `app/`) ne déclenche rien.
+- Si la vérification échoue sur le rapport : `python analyse/generer_rapport.py <id du modèle>` en local, puis versionner le dossier régénéré.
+
+### Pourquoi l'app n'y est pas
+
+L'app Rayfin (`app/`) se déploie avec `npx rayfin up`, après `npx rayfin login`, une connexion interactive dans le navigateur.
+La CLI Rayfin accepte bien un principal de service (`rayfin login --service-principal`), mais seulement avec un secret client :
+pas d'identité fédérée, donc pas de déploiement sans secret comme pour la chaîne analytique. Et `rayfin up` ne se contente pas
+de publier l'interface : il applique aussi le schéma de la base SQL, avec un risque de perte de données sur un changement
+destructif (`--force`). L'app reste donc déployée à la main depuis le poste, après relecture du plan (`npx rayfin up -n`).
+
 ## Structure du dépôt
 
 ```text
 .
+├── .github/workflows/
+│   └── deploy-fabric.yml             vérification et déploiement continu de analyse/
 ├── app/                              Fabric App
 │   ├── rayfin/data/                  entités (tables SQL, permissions par ligne)
 │   └── src/
