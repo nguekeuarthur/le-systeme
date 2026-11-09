@@ -138,7 +138,7 @@ jobs:
             echo "Entra ID accepte le jeton OIDC pour l'application $CLIENT_ID"
           else
             printf '%s' "$reponse" | jq '{error, error_description}'
-            echo "::error::Entra ID refuse le jeton OIDC : vérifie l'identité fédérée de l'inscription d'application (sujet repo:$GITHUB_REPOSITORY:ref:$GITHUB_REF)."
+            echo "::error::Entra ID refuse le jeton OIDC : vérifie l'identité fédérée de l'inscription d'application (émetteur, audience et sujet ; le sujet présenté figure dans error_description ci-dessus)."
             exit 1
           fi
           {

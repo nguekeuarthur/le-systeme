@@ -238,8 +238,11 @@ vérifie qu'Entra ID l'accepte, puis la CLI Fabric l'échange contre un jeton En
 `fab auth login -u <id d'application> --federated-token <jeton> --tenant <id du locataire>`. Côté tenant, la mise en place se fait une fois :
 
 1. **Une inscription d'application Entra ID** (ici « GitHub Actions - Le Système »), sans secret ni certificat, avec un
-   identifiant fédéré de type *GitHub Actions* : organisation `nguekeuarthur`, dépôt `le-systeme`, entité *Branch*, branche `main`.
-   Le sujet attendu est donc `repo:nguekeuarthur/le-systeme:ref:refs/heads/main` et l'audience `api://AzureADTokenExchange`.
+   identifiant fédéré : émetteur `https://token.actions.githubusercontent.com`, audience `api://AzureADTokenExchange`, et pour
+   sujet celui que GitHub met dans le jeton de la branche `main`. GitHub y inclut les identifiants numériques du propriétaire
+   et du dépôt : `repo:nguekeuarthur@88515280/le-systeme@1439791430:ref:refs/heads/main`
+   (`gh api repos/nguekeuarthur/le-systeme --jq '{id, owner_id: .owner.id}'` les donne). Si le sujet ne correspond pas,
+   le flux s'arrête avec l'erreur AADSTS700213 d'Entra ID, qui affiche le sujet présenté.
 2. **Le paramètre de locataire Fabric** « Les principaux de service peuvent utiliser les API Fabric » activé
    (portail d'administration → Paramètres du locataire → Paramètres du développeur).
 3. **Le rôle Contributeur** du principal de service sur l'espace de travail « Le Système » :
