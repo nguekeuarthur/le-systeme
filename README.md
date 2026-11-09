@@ -234,8 +234,8 @@ Le déploiement ne part jamais d'une pull request ni d'une bifurcation. Seul `ma
 ### Comment il s'authentifie
 
 Aucun secret, ni dans le dépôt ni dans GitHub. Le flux demande à GitHub un jeton OIDC (permission `id-token: write`),
-puis la CLI Fabric l'échange contre un jeton Entra ID grâce aux variables d'environnement `FAB_SPN_CLIENT_ID`, `FAB_TENANT_ID`
-et `FAB_SPN_FEDERATED_TOKEN`. Côté tenant, la mise en place se fait une fois :
+vérifie qu'Entra ID l'accepte, puis la CLI Fabric l'échange contre un jeton Entra ID avec
+`fab auth login -u <id d'application> --federated-token <jeton> --tenant <id du locataire>`. Côté tenant, la mise en place se fait une fois :
 
 1. **Une inscription d'application Entra ID** (ici « GitHub Actions - Le Système »), sans secret ni certificat, avec un
    identifiant fédéré de type *GitHub Actions* : organisation `nguekeuarthur`, dépôt `le-systeme`, entité *Branch*, branche `main`.
@@ -249,7 +249,8 @@ et `FAB_SPN_FEDERATED_TOKEN`. Côté tenant, la mise en place se fait une fois :
    Sans `FABRIC_CLIENT_ID`, le déploiement est sauté et seule la vérification tourne (cas d'une bifurcation non configurée).
 
 Pour utiliser un secret client à la place (autre hébergeur de CI, par exemple), remplace l'étape « Jeton d'identité fédérée »
-par la variable `FAB_SPN_CLIENT_SECRET` lue depuis un secret GitHub. Le reste du flux ne change pas.
+par `fab auth login -u <id d'application> -p <secret> --tenant <id du locataire>`, le secret étant lu depuis un secret GitHub.
+Le reste du flux ne change pas.
 
 ### Comment le relancer
 

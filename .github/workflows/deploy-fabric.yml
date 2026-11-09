@@ -7,7 +7,8 @@
 # - Déploiement seulement sur main : les mêmes commandes `fab import` que dans analyse/README.md.
 #
 # Authentification sans secret : GitHub émet un jeton OIDC, que la CLI Fabric échange contre
-# un jeton Entra ID grâce à l'identité fédérée déclarée sur l'inscription d'application.
+# un jeton Entra ID (`fab auth login --federated-token`) grâce à l'identité fédérée déclarée
+# sur l'inscription d'application.
 # Les deux variables de dépôt FABRIC_CLIENT_ID et FABRIC_TENANT_ID sont décrites dans le README.
 
 name: Déploiement Fabric
@@ -39,10 +40,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Récupération du dépôt
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -102,10 +103,10 @@ jobs:
       ESPACE: Le Système.Workspace
     steps:
       - name: Récupération du dépôt
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -123,24 +124,33 @@ jobs:
             echo "::error::Variables de dépôt FABRIC_CLIENT_ID et FABRIC_TENANT_ID absentes (Settings → Secrets and variables → Actions → Variables). Voir le README, section CI/CD."
             exit 1
           fi
-          jeton=$(curl --silent --show-error --fail \
-            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" | jq -r '.value')
+          jeton=$(curl --silent --show-error --fail             -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN"             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" | jq -r '.value')
           if [ -z "$jeton" ] || [ "$jeton" = "null" ]; then
             echo "::error::GitHub n'a pas émis de jeton OIDC."
             exit 1
           fi
           echo "::add-mask::$jeton"
-          {
-            echo "FAB_SPN_CLIENT_ID=$CLIENT_ID"
-            echo "FAB_TENANT_ID=$TENANT_ID"
-            echo "FAB_SPN_FEDERATED_TOKEN=$jeton"
-          } >> "$GITHUB_ENV"
           echo "Jeton OIDC obtenu pour $GITHUB_REPOSITORY ($GITHUB_REF)"
+
+          # Contrôle de l'échange auprès d'Entra ID : seule l'erreur éventuelle est affichée, jamais un jeton.
+          reponse=$(curl --silent --show-error             -X POST "https://login.microsoftonline.com/$TENANT_ID/oauth2/v2.0/token"             --data-urlencode "client_id=$CLIENT_ID"             --data-urlencode "grant_type=client_credentials"             --data-urlencode "scope=https://api.fabric.microsoft.com/.default"             --data-urlencode "client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"             --data-urlencode "client_assertion=$jeton")
+          if printf '%s' "$reponse" | jq -e '.access_token' > /dev/null; then
+            echo "Entra ID accepte le jeton OIDC pour l'application $CLIENT_ID"
+          else
+            printf '%s' "$reponse" | jq '{error, error_description}'
+            echo "::error::Entra ID refuse le jeton OIDC : vérifie l'identité fédérée de l'inscription d'application (sujet repo:$GITHUB_REPOSITORY:ref:$GITHUB_REF)."
+            exit 1
+          fi
+          {
+            echo "CLIENT_ID=$CLIENT_ID"
+            echo "TENANT_ID=$TENANT_ID"
+            echo "JETON_OIDC=$jeton"
+          } >> "$GITHUB_ENV"
 
       - name: Connexion à Fabric
         run: |
           fab config set encryption_fallback_enabled true
+          fab auth login -u "$CLIENT_ID" --federated-token "$JETON_OIDC" --tenant "$TENANT_ID"
           fab auth status
 
       - name: Notebook Pipeline_Medaillon
