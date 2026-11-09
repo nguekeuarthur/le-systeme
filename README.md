@@ -34,9 +34,11 @@ Projet réalisé dans le cadre du **#FabricAppsChallenge** (novembre 2026).
 
 ## Démo
 
-> 🎬 *Vidéo de démonstration : lien à venir*
+![Une certification saisie, le Système annonce « Niveau supérieur » et le portail change de couleur](docs/demo.gif)
 
-<!-- ![Démonstration](docs/demo.gif) -->
+*Une certification saisie dans l'app : le journal est recalculé, le Système annonce le passage de niveau et la scène change de couleur.*
+
+La démonstration complète (3 min 42, avec le son) est publiée sur LinkedIn pour le #FabricAppsChallenge.
 
 ## Fonctionnalités
 
